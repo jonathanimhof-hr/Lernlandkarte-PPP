@@ -201,8 +201,8 @@ Sie wächst vor allem an eigenen Erfolgserlebnissen, und zwar an echten: Aufgabe
   --font-display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
   --font-body:'Source Serif 4',Georgia,'Times New Roman',serif;
   --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --hutw:clamp(44px,6.2cqw,86px);
-  --plate:15cqw;
+  --hutw:clamp(52px,8cqw,112px);
+  --plate:17cqw;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -329,8 +329,8 @@ body.mode-road .hut{cursor:crosshair}
 .hut.complete .flag{display:block}
 .plate{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:.25cqw .6cqw;
   max-width:var(--plate);text-align:center;line-height:1.2;box-shadow:0 1px 0 rgba(0,0,0,.04)}
-.plate b{display:block;font-size:clamp(8.5px,1.05cqw,14px);font-weight:600;letter-spacing:-.01em;overflow-wrap:break-word}
-.plate i{display:block;font-style:normal;font-size:clamp(7px,.82cqw,11px);color:var(--muted);
+.plate b{display:block;font-size:clamp(9.5px,1.25cqw,16px);font-weight:600;letter-spacing:-.01em;overflow-wrap:break-word}
+.plate i{display:block;font-style:normal;font-size:clamp(8px,.95cqw,12.5px);color:var(--muted);
   font-variant-numeric:tabular-nums;margin-top:.1cqw}
 .hut.complete .plate i{color:var(--jade)}
 
@@ -869,8 +869,8 @@ body.src-open .src{transform:none}
       h.y = klemm(y + (rnd(i+99)-0.5)*jy, 12, 80);
       h.px = h.x; h.py = h.y;
     });
-    elSheet.style.setProperty("--hutw", "clamp(26px," + Math.min(6.2, colSpan*0.52).toFixed(2) + "cqw,86px)");
-    elSheet.style.setProperty("--plate", Math.max(7, Math.min(16, colSpan*0.92)).toFixed(2) + "cqw");
+    elSheet.style.setProperty("--hutw", "clamp(30px," + Math.min(8, colSpan*0.62).toFixed(2) + "cqw,112px)");
+    elSheet.style.setProperty("--plate", Math.max(8, Math.min(18, colSpan*1.02)).toFixed(2) + "cqw");
   }
   function freierPlatz(){
     var best = {x:50,y:45}, bestD = -1;
