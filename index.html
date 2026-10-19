@@ -9,6 +9,17 @@
   img{ max-width:100%; }
   [hidden]{ display:none !important; }
 </style>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{ color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body{ margin:0; }
+  img{ max-width:100%; }
+  [hidden]{ display:none !important; }
+</style>
 <title>Lernlandkarte</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +94,12 @@ Die doppelten eckigen Klammern sind die Portale: Du schreibst einfach den Namen 
 
 Zuunterst in jedem Zimmer steht automatisch, welche Zimmer es erwähnt und welche auf es zeigen. Darum musst du dich nicht kümmern.
 
-Bilder legst du neben die Datei und schreibst nur den Dateinamen in die Klammer.
+### Bilder
+Am einfachsten über den Knopf **+ Bild** unter dem Textfeld. Du kannst ein Bild auch direkt ins Textfeld ziehen oder mit Strg+V einfügen, etwa einen frischen Screenshot.
+
+Das Bild wird dabei verkleinert und **in die Datei hineingelegt**. Es wandert also keine Bilddatei daneben — die Karte bleibt eine einzige Datei, die du weitergeben kannst.
+
+Weil jedes Bild die Datei grösser macht, nimm nur, was du wirklich brauchst. Meldet die Karte, der Speicher sei voll, kopier den Quelltext und sichere ihn in der Datei.
 
 ## Sichern und veröffentlichen
 Was du auf der Seite machst, liegt in **deinem Browser**. Auf einem anderen Gerät ist es nicht da, und wer deinen GitHub-Link öffnet, sieht es auch nicht. Dafür gibt es den Knopf **Quelltext** neben dem Stift:
@@ -345,6 +361,8 @@ body.editing .legend{opacity:.35}
 .legend .s-haus{background:var(--schiefer);clip-path:polygon(50% 0,100% 55%,100% 100%,0 100%,0 55%)}
 .legend .s-weg{background:var(--road);border-radius:2px}
 .legend .s-portal{border-top:1.5px dashed var(--link)}
+.legend .stand{margin:.55cqw 0 0;padding-top:.45cqw;border-top:1px solid var(--rule);
+  font-size:clamp(7px,.78cqw,10px);color:var(--muted);opacity:.75;font-variant-numeric:tabular-nums}
 
 /* ---------- Haus von innen ---------- */
 .house{position:fixed;inset:0;z-index:110;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--paper);
@@ -457,6 +475,13 @@ body.editing .rooms{grid-template-columns:1fr}
   transition:transform .16s,border-color .16s}
 .sw:hover{transform:scale(1.14)}
 .sw.on{border-color:var(--ink)}
+.bildrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.bildbtn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;background:transparent;
+  color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:4px 12px;cursor:pointer;transition:all .18s}
+.bildbtn:hover{border-color:var(--ocker);color:var(--ocker)}
+.bildhinweis{font-size:.73rem;color:var(--muted)}
+.tarea.dragover{border-color:var(--ocker);border-style:dashed;background:var(--mark)}
+.rtext img{border-radius:5px;border:1px solid var(--rule);display:block}
 .addrow{padding:14px 18px 0}
 .addbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:.84rem;background:transparent;
   color:var(--muted);border:1.5px dashed var(--rule);border-radius:7px;padding:9px 15px;cursor:pointer;width:100%;
@@ -496,6 +521,8 @@ body.src-open .src{transform:none}
 }
 </style>
 
+</head>
+<body>
 </head>
 <body>
 <div class="app">
@@ -551,6 +578,7 @@ body.src-open .src{transform:none}
             <li><span class="sym s-weg"></span>Strasse = selbst gezogen</li>
             <li><span class="sym s-portal"></span>Portal = Querverweis im Text</li>
           </ul>
+          <p class="stand">Fassung 19.10.2026 · mit Dächern</p>
         </div>
       </div>
     </div>
@@ -588,6 +616,7 @@ body.src-open .src{transform:none}
     </div>
   </section>
 
+  <input type="file" id="bildInput" accept="image/*" hidden>
   <div class="toast" id="toast" role="status"></div>
 </div>
 
@@ -609,19 +638,23 @@ body.src-open .src{transform:none}
       return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
     });
   }
-  function safeUrl(u){ u = String(u).trim(); return /^(https?:|#|\.|\/|[\w-]+\.)/i.test(u) ? u : "#"; }
+  function safeUrl(u){
+    u = String(u).trim();
+    /* data:image erlaubt eingebettete Bilder, die in der Datei selbst stecken */
+    return /^(data:image\/[a-z+.-]+[,;]|https?:|#|\.|\/|[\w-]+\.)/i.test(u) ? u : "#";
+  }
   function rnd(i){ var v = Math.sin(i*127.1+311.7)*43758.5453; return v - Math.floor(v); }
   function klemm(v,a,b){ return v < a ? a : (v > b ? b : v); }
   var store = {
     get:function(k,d){ try{ var v=localStorage.getItem("lernlandkarte."+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
-    set:function(k,v){ try{ localStorage.setItem("lernlandkarte."+k, JSON.stringify(v)); }catch(e){} },
+    set:function(k,v){ try{ localStorage.setItem("lernlandkarte."+k, JSON.stringify(v)); return true; }catch(e){ return false; } },
     del:function(k){ try{ localStorage.removeItem("lernlandkarte."+k); }catch(e){} }
   };
   var elToast = document.getElementById("toast"), toastTimer;
-  function toast(t){
+  function toast(t, dauer){
     elToast.textContent = t; elToast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ elToast.classList.remove("show"); }, 2400);
+    toastTimer = setTimeout(function(){ elToast.classList.remove("show"); }, dauer || 2400);
   }
 
   /* ===== Inhalt lesen und schreiben ===== */
@@ -767,7 +800,15 @@ body.src-open .src{transform:none}
       z.links.forEach(function(t){ if(zimmerById[t]) (rueck[t] = rueck[t] || []).push(z.id); });
     });
   }
-  function sichern(){ quelle = serialize(); store.set("quelle", quelle); }
+  var speicherVoll = false;
+  function sichern(){
+    quelle = serialize();
+    if(store.set("quelle", quelle)){ speicherVoll = false; return; }
+    if(!speicherVoll){
+      speicherVoll = true;
+      toast("Browser-Speicher voll — kopier den Quelltext und sichere ihn in der Datei!", 8000);
+    }
+  }
   function ziel(name){
     var s = slug(name);
     if(zimmerById[s]) return {art:"zimmer", z:zimmerById[s]};
@@ -1114,7 +1155,9 @@ body.src-open .src{transform:none}
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 6.5"/></svg>'+
           "</button>";
       var koerper = editing
-        ? '<textarea class="tarea" data-ztext="'+i+'" placeholder="Text des Zimmers … Portale schreibst du in doppelte eckige Klammern.">'+esc(z.text)+"</textarea>"
+        ? '<textarea class="tarea" data-ztext="'+i+'" placeholder="Text des Zimmers … Portale schreibst du in doppelte eckige Klammern.">'+esc(z.text)+"</textarea>"+
+          '<div class="bildrow"><button class="bildbtn" data-bild="'+i+'">+ Bild</button>'+
+          '<span class="bildhinweis">oder Bild hineinziehen · Strg+V</span></div>'
         : '<div class="rtext">'+blockHtml(z.text, h.id)+refs(z)+"</div>";
       return '<section class="room" id="zimmer-'+z.id+'" style="--d:'+Math.min(i,8)*50+'ms">'+
         '<header class="rhead"><span class="rdoor"></span>'+kopfTeil+"</header>"+koerper+"</section>";
@@ -1261,6 +1304,89 @@ body.src-open .src{transform:none}
     }, 3500);
   }
 
+  /* ===== Bilder einfügen =====
+     Das Bild wird verkleinert und als data-Adresse direkt in den Text gelegt.
+     So bleibt alles in dieser einen Datei — es wandert keine Bilddatei daneben. */
+  var bildInput = document.getElementById("bildInput");
+  var bildZiel = null;
+
+  function setzeBild(t, daten, name){
+    var legende = String(name || "Bild").replace(/\.[^.]+$/,"").replace(/[\[\]()|]/g," ").trim() || "Bild";
+    var code = "\n\n![" + legende + "](" + daten + ")\n\n";
+    var p = (t.selectionStart === null || t.selectionStart === undefined) ? t.value.length : t.selectionStart;
+    t.value = t.value.slice(0, p) + code + t.value.slice(p);
+    var h = haeuser[offen];
+    if(h && t.dataset.ztext !== undefined){
+      h.zimmer[+t.dataset.ztext].text = t.value;
+      sichern();
+    }
+    wachse(t);
+    var kb = Math.round(daten.length * 0.75 / 1024);
+    toast("Bild eingefügt (" + kb + " KB)");
+  }
+
+  function bildEinfuegen(datei, t){
+    if(!datei || !/^image\//.test(datei.type || "")){ toast("Das ist kein Bild"); return; }
+    if(!t){ return; }
+    var leser = new FileReader();
+    leser.onerror = function(){ toast("Bild konnte nicht gelesen werden"); };
+    leser.onload = function(){
+      var roh = leser.result;
+      if(/svg/i.test(datei.type)){ setzeBild(t, roh, datei.name); return; }
+      var img = new Image();
+      img.onerror = function(){ toast("Bild konnte nicht gelesen werden"); };
+      img.onload = function(){
+        var max = 1400, w = img.width, h2 = img.height;
+        if(w > max || h2 > max){ var f = Math.min(max/w, max/h2); w = Math.round(w*f); h2 = Math.round(h2*f); }
+        var c = document.createElement("canvas");
+        c.width = w; c.height = h2;
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h2);   /* sonst wird Durchsichtiges schwarz */
+        ctx.drawImage(img, 0, 0, w, h2);
+        var klein = roh;
+        try{
+          var jpg = c.toDataURL("image/jpeg", 0.82);
+          if(jpg && jpg.length < roh.length) klein = jpg;
+        }catch(e){}
+        setzeBild(t, klein, datei.name);
+      };
+      img.src = roh;
+    };
+    leser.readAsDataURL(datei);
+  }
+
+  bildInput.addEventListener("change", function(){
+    if(this.files && this.files[0]) bildEinfuegen(this.files[0], bildZiel);
+    this.value = "";
+  });
+  elBody.addEventListener("paste", function(ev){
+    var t = ev.target;
+    if(!t.classList || !t.classList.contains("tarea")) return;
+    var sachen = (ev.clipboardData && ev.clipboardData.items) || [];
+    for(var i = 0; i < sachen.length; i++){
+      if(/^image\//.test(sachen[i].type)){
+        ev.preventDefault();
+        bildEinfuegen(sachen[i].getAsFile(), t);
+        return;
+      }
+    }
+  });
+  elBody.addEventListener("dragover", function(ev){
+    var t = ev.target;
+    if(!t.classList || !t.classList.contains("tarea")) return;
+    ev.preventDefault(); t.classList.add("dragover");
+  });
+  elBody.addEventListener("dragleave", function(ev){
+    if(ev.target.classList) ev.target.classList.remove("dragover");
+  });
+  elBody.addEventListener("drop", function(ev){
+    var t = ev.target;
+    if(!t.classList || !t.classList.contains("tarea")) return;
+    ev.preventDefault(); t.classList.remove("dragover");
+    var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+    if(f) bildEinfuegen(f, t);
+  });
+
   elBody.addEventListener("input", function(ev){
     var t = ev.target, h = haeuser[offen];
     if(!h) return;
@@ -1286,6 +1412,12 @@ body.src-open .src{transform:none}
   elBody.addEventListener("click", function(ev){
     var t = ev.target, h = haeuser[offen];
     if(!t.closest) return;
+    var bb = t.closest("[data-bild]");
+    if(bb){
+      bildZiel = elBody.querySelector('[data-ztext="' + bb.dataset.bild + '"]');
+      if(bildZiel) bildInput.click();
+      return;
+    }
     var sw = t.closest(".sw");
     if(sw && h){ h.farbe = sw.dataset.farbe; sichern(); index(); zeigeHaus(offen); return; }
     var add = t.closest("#addZimmer");
@@ -1496,6 +1628,9 @@ body.src-open .src{transform:none}
   route();
 })();
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
