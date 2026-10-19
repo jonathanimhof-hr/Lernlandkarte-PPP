@@ -316,7 +316,9 @@ body.mode-road .hut{cursor:crosshair}
 .hut.picked .walls{box-shadow:0 0 0 3px var(--ocker)}
 .hut.picked .roof{filter:brightness(1.15)}
 .shape{position:relative;width:var(--hutw);transition:transform .18s}
-.roof{height:calc(var(--hutw)*.37);background:var(--c);clip-path:polygon(50% 0,100% 100%,0 100%)}
+/* display:block ist nötig — ein Inline-Element hätte keine Höhe und das Dach wäre unsichtbar */
+.roof{display:block;width:112%;margin-left:-6%;height:calc(var(--hutw)*.4);
+  background:var(--c);clip-path:polygon(50% 0,100% 100%,0 100%)}
 .walls{height:calc(var(--hutw)*.58);background:var(--card);border:1.5px solid var(--c);border-top:0;
   border-radius:0 0 3px 3px;display:flex;align-items:center;justify-content:center;gap:12%}
 .win{width:22%;aspect-ratio:1;background:var(--c);opacity:.28;border-radius:1px}
